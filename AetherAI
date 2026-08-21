@@ -101,3 +101,14 @@ models = [
         "verified": True
     }
 ]
+df = pd.DataFrame(models)
+
+current_user = {
+    "signed_in": False,
+    "name": "Guest",
+    "email": ""
+}
+
+purchases = []
+deployments_list = []
+saved_models = []
