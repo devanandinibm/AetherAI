@@ -1,0 +1,5 @@
+!pip install -q gradio pandas plotly
+import gradio as gr
+import pandas as pd
+import plotly.express as px
+import uuid
