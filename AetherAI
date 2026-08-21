@@ -112,3 +112,8 @@ current_user = {
 purchases = []
 deployments_list = []
 saved_models = []
+def get_model(name):
+    for model in models:
+        if model["name"] == name:
+            return model
+    return None
