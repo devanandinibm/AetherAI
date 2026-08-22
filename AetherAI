@@ -235,4 +235,84 @@ def show_model_details(name):
 | Active Deployments | {model["deployments"]:,} |
 | Community Reviews | {model["reviews"]:,} |
 """
+def save_model(name):
 
+    if not name:
+        return "Please select a model."
+
+    if name not in saved_models:
+        saved_models.append(name)
+        return f"### {name} saved to your favourites."
+
+    return f"### {name} is already saved."
+def compare_models(selected_models):
+
+    if not selected_models:
+        return pd.DataFrame()
+
+    selected_models = selected_models[:3]
+
+    results = df[df["name"].isin(selected_models)].copy()
+
+    display = results[
+        [
+            "name",
+            "price",
+            "benchmark",
+            "trust",
+            "accuracy",
+            "latency",
+            "rating",
+            "deployments"
+        ]
+    ]
+
+    display.columns = [
+        "Model",
+        "Price (₹)",
+        "Benchmark",
+        "Trust Score",
+        "Accuracy (%)",
+        "Latency (ms)",
+        "Rating",
+        "Deployments"
+    ]
+
+    return display
+def trust_explanation(name):
+
+    model = get_model(name)
+
+    if not model:
+        return "Please select a model."
+
+    score = model["trust"]
+
+    benchmark_score = round(score * 0.30)
+    creator_score = round(score * 0.25)
+    reviews_score = round(score * 0.20)
+    security_score = round(score * 0.15)
+    documentation_score = (
+        score
+        - benchmark_score
+        - creator_score
+        - reviews_score
+        - security_score
+    )
+
+    return f"""
+# Aether Trust Score: {score}/100
+
+AetherAI explains why a model is trusted instead of asking users to rely only on marketing claims.
+
+| Verification Factor | Contribution |
+|---|---:|
+| Benchmark Reliability | {benchmark_score}/30 |
+| Creator Verification | {creator_score}/25 |
+| Community Reviews | {reviews_score}/20 |
+| Security Assessment | {security_score}/15 |
+| Documentation Quality | {documentation_score}/10 |
+
+### Why this matters
+The Aether Trust Score gives users a transparent way to evaluate AI models before purchasing or deploying them.
+"""
