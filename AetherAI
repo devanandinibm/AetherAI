@@ -373,3 +373,159 @@ def is_purchased(name):
         purchase["model"] == name
         for purchase in purchases
     )
+def deploy_model(
+    name,
+    deployment_name,
+    region,
+    environment
+):
+
+    if not current_user["signed_in"]:
+        return """
+# Sign In Required
+
+Please sign in before deploying a model.
+"""
+
+    model = get_model(name)
+
+    if not model:
+        return "Please select a valid model."
+
+    if not is_purchased(name):
+        return f"""
+# Purchase Required
+
+You need to purchase **{name}** before deployment.
+
+Go to the Purchase section first.
+"""
+
+    if not deployment_name:
+        deployment_name = (
+            name.lower()
+            .replace(" ", "-")
+            + "-deployment"
+        )
+
+    endpoint_id = str(uuid.uuid4())[:8]
+
+    endpoint = (
+        f"https://api.aetherai.demo/v1/"
+        f"{model['id']}/{endpoint_id}"
+    )
+
+    deployments_list.append({
+        "id": str(uuid.uuid4()),
+        "name": deployment_name,
+        "model": name,
+        "region": region,
+        "environment": environment,
+        "endpoint": endpoint,
+        "status": "Active"
+    })
+
+    return f"""
+# Deployment Successful
+
+Your AI model is now active.
+
+| Setting | Value |
+|---|---|
+| Deployment | {deployment_name} |
+| Model | {name} |
+| Region | {region} |
+| Environment | {environment} |
+| Status | Active |
+
+### API Endpoint
+
+`{endpoint}`
+
+Your endpoint is ready for demonstration.
+"""
+def dashboard_data():
+
+    total_spend = sum(
+        purchase["amount"]
+        for purchase in purchases
+    )
+
+    stats = f"""
+# {current_user["name"]}'s Dashboard
+
+| Metric | Value |
+|---|---:|
+| Active Deployments | {len(deployments_list)} |
+| Models Purchased | {len(purchases)} |
+| Saved Models | {len(saved_models)} |
+| Total Spend | ₹{total_spend:,.0f} |
+| Average Marketplace Trust Score | {df["trust"].mean():.1f}/100 |
+"""
+
+    # Always show a chart
+    if purchases:
+
+        purchase_df = pd.DataFrame(purchases)
+
+        spending_data = (
+            purchase_df
+            .groupby("model", as_index=False)["amount"]
+            .sum()
+        )
+
+    else:
+
+        spending_data = pd.DataFrame({
+            "model": [
+                "AetherGPT Pro",
+                "VisionForge CV",
+                "MedInsight AI"
+            ],
+            "amount": [2499, 1899, 3999]
+        })
+
+    spending_chart = px.bar(
+        spending_data,
+        x="model",
+        y="amount",
+        title="Model Spending Overview",
+        labels={
+            "model": "AI Model",
+            "amount": "Amount (₹)"
+        }
+    )
+
+    activity_df = pd.DataFrame({
+        "Metric": [
+            "Deployments",
+            "Purchases",
+            "Saved Models"
+        ],
+        "Count": [
+            len(deployments_list),
+            len(purchases),
+            len(saved_models)
+        ]
+    })
+
+    activity_chart = px.bar(
+        activity_df,
+        x="Metric",
+        y="Count",
+        title="AetherAI Activity"
+    )
+
+    spending_chart.update_layout(
+        template="plotly_white",
+        paper_bgcolor="white",
+        plot_bgcolor="white"
+    )
+
+    activity_chart.update_layout(
+        template="plotly_white",
+        paper_bgcolor="white",
+        plot_bgcolor="white"
+    )
+
+    return stats, spending_chart, activity_chart
