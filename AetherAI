@@ -529,3 +529,58 @@ def dashboard_data():
     )
 
     return stats, spending_chart, activity_chart
+def publish_model(
+    name,
+    developer,
+    category,
+    description,
+    price,
+    accuracy,
+    latency,
+    benchmark
+):
+
+    if not name or not developer or not description:
+        return """
+# Missing Information
+
+Please enter the model name, developer name and description.
+"""
+
+    global df
+
+    new_model = {
+        "id": name.lower().replace(" ", "-"),
+        "name": name,
+        "developer": developer,
+        "category": category,
+        "description": description,
+        "price": int(price),
+        "benchmark": int(benchmark),
+        "trust": 85,
+        "accuracy": int(accuracy),
+        "latency": int(latency),
+        "deployments": 0,
+        "reviews": 0,
+        "rating": 0,
+        "verified": False
+    }
+
+    models.append(new_model)
+    df = pd.DataFrame(models)
+
+    return f"""
+# Model Published Successfully
+
+**{name}** has been added to the AetherAI marketplace.
+
+### Initial Verification
+
+- Initial Aether Trust Score: **85/100**
+- Status: **Pending Verification**
+- Monetization: **Enabled**
+
+Your model is now ready to be discovered by marketplace users.
+"""
+
+print("AetherAI backend loaded successfully.")
