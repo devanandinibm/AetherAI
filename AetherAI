@@ -151,3 +151,46 @@ def continue_as_guest():
         "## Welcome, Guest User\nYou are now exploring the AetherAI marketplace.",
         "Signed in as: **Guest User**"
     )
+def search_models(search, category, min_trust):
+
+    results = df.copy()
+
+    if search:
+        search = search.lower()
+
+        results = results[
+            results["name"].str.lower().str.contains(search, na=False) |
+            results["developer"].str.lower().str.contains(search, na=False) |
+            results["description"].str.lower().str.contains(search, na=False)
+        ]
+if category != "All":
+        results = results[results["category"] == category]
+
+    results = results[results["trust"] >= min_trust]
+
+    display = results[
+        [
+            "name",
+            "developer",
+            "category",
+            "price",
+            "benchmark",
+            "trust",
+            "accuracy",
+            "latency",
+            "rating"
+        ]
+    ].copy()
+display.columns = [
+        "Model",
+        "Developer",
+        "Category",
+        "Price (₹)",
+        "Benchmark",
+        "Trust Score",
+        "Accuracy (%)",
+        "Latency (ms)",
+        "Rating"
+    ]
+
+    return display
