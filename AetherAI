@@ -194,3 +194,45 @@ display.columns = [
     ]
 
     return display
+def show_model_details(name):
+
+    model = get_model(name)
+
+    if not model:
+        return "Please select a model."
+
+    verification = "Verified" if model["verified"] else "Pending Verification"
+
+    return f"""
+# {model["name"]}
+
+### Model Overview
+
+**Developer:** {model["developer"]}
+
+**Category:** {model["category"]}
+
+**Verification Status:** {verification}
+
+**Community Rating:** {model["rating"]}/5
+
+**Monthly Price:** ₹{model["price"]:,}
+
+---
+
+### About
+
+{model["description"]}
+
+### Performance Snapshot
+
+| Metric | Value |
+|---|---:|
+| Benchmark Score | {model["benchmark"]}/100 |
+| Aether Trust Score | {model["trust"]}/100 |
+| Accuracy | {model["accuracy"]}% |
+| Latency | {model["latency"]} ms |
+| Active Deployments | {model["deployments"]:,} |
+| Community Reviews | {model["reviews"]:,} |
+"""
+
