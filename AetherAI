@@ -316,3 +316,60 @@ AetherAI explains why a model is trusted instead of asking users to rely only on
 ### Why this matters
 The Aether Trust Score gives users a transparent way to evaluate AI models before purchasing or deploying them.
 """
+def purchase_model(name):
+
+    if not current_user["signed_in"]:
+        return """
+# Sign In Required
+
+Please sign in before purchasing a model.
+"""
+
+    model = get_model(name)
+
+    if not model:
+        return "Please select a valid model."
+
+    already_purchased = any(
+        purchase["model"] == model["name"]
+        for purchase in purchases
+    )
+if already_purchased:
+        return f"""
+# Already Purchased
+
+You already have access to **{model["name"]}**.
+
+You can deploy it from the Deploy section.
+"""
+
+    platform_fee = round(model["price"] * 0.05)
+    total = model["price"] + platform_fee
+
+    purchases.append({
+        "id": str(uuid.uuid4()),
+        "model": model["name"],
+        "amount": total,
+        "model_price": model["price"],
+        "platform_fee": platform_fee
+    })
+return f"""
+# Purchase Successful
+
+You now have access to **{model["name"]}**.
+
+| Item | Amount |
+|---|---:|
+| Model Price | ₹{model["price"]:,} |
+| Platform Fee | ₹{platform_fee:,} |
+| **Total Paid** | **₹{total:,}** |
+
+The model has been added to your AetherAI account.
+"""
+
+
+def is_purchased(name):
+    return any(
+        purchase["model"] == name
+        for purchase in purchases
+    )
