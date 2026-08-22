@@ -112,8 +112,42 @@ current_user = {
 purchases = []
 deployments_list = []
 saved_models = []
+
+
 def get_model(name):
     for model in models:
         if model["name"] == name:
             return model
     return None
+
+def sign_in(email, password):
+    if not email or "@" not in email:
+        return (
+            "### Please enter a valid email address.",
+            "Status: Not signed in"
+        )
+
+    name = (
+        email.split("@")[0]
+        .replace(".", " ")
+        .replace("_", " ")
+        .title()
+    )
+
+    current_user["signed_in"] = True
+    current_user["name"] = name
+    current_user["email"] = email
+
+    return (
+        f"## Welcome, {name}\nYou have successfully signed in to AetherAI.",
+        f"Signed in as: **{name}**"
+    )
+def continue_as_guest():
+    current_user["signed_in"] = True
+    current_user["name"] = "Guest User"
+    current_user["email"] = "guest@aetherai.com"
+
+    return (
+        "## Welcome, Guest User\nYou are now exploring the AetherAI marketplace.",
+        "Signed in as: **Guest User**"
+    )
