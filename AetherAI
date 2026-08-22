@@ -3,10 +3,13 @@ import gradio as gr
 import pandas as pd
 import plotly.express as px
 import uuid
+
+
+
 models = [
     {
         "id": "aethergpt-pro",
-        "name": "AetherAI Pro",
+        "name": "AetherGPT Pro",
         "developer": "Aether Labs",
         "category": "Large Language Models",
         "description": "Enterprise-grade language model for reasoning, content generation and intelligent automation.",
@@ -21,7 +24,7 @@ models = [
         "verified": True
     },
     {
- "id": "visionforge-cv",
+        "id": "visionforge-cv",
         "name": "VisionForge CV",
         "developer": "VisionForge",
         "category": "Computer Vision",
@@ -37,11 +40,11 @@ models = [
         "verified": True
     },
     {
- "id": "medinsight-ai",
+        "id": "medinsight-ai",
         "name": "MedInsight AI",
         "developer": "MedIntel Research",
         "category": "Healthcare AI",
-        "description": "Clinical AI assistance for research, medical information analysis and documentation support.",
+        "description": "AI assistance for medical information analysis, research and clinical documentation support.",
         "price": 3999,
         "benchmark": 95,
         "trust": 98,
@@ -53,7 +56,7 @@ models = [
         "verified": True
     },
     {
-"id": "bharatspeech",
+        "id": "bharatspeech",
         "name": "BharatSpeech",
         "developer": "Indic AI Labs",
         "category": "Speech and Audio",
@@ -69,11 +72,11 @@ models = [
         "verified": True
     },
     {
- "id": "pixelcraft",
+        "id": "pixelcraft",
         "name": "PixelCraft",
         "developer": "Pixel Labs",
         "category": "Image Generation",
-        "description": "Fast AI image generation for creative workflows and marketing.",
+        "description": "AI image generation for creative workflows, design and marketing.",
         "price": 1299,
         "benchmark": 88,
         "trust": 90,
@@ -85,11 +88,11 @@ models = [
         "verified": True
     },
     {
- "id": "finsight-ai",
+        "id": "finsight-ai",
         "name": "FinSight AI",
         "developer": "QuantEdge",
         "category": "Finance AI",
-        "description": "AI-powered financial analysis for forecasting and reporting.",
+        "description": "AI-powered financial analysis for forecasting, reporting and business insights.",
         "price": 2999,
         "benchmark": 92,
         "trust": 95,
@@ -101,6 +104,7 @@ models = [
         "verified": True
     }
 ]
+
 df = pd.DataFrame(models)
 
 current_user = {
@@ -114,17 +118,21 @@ deployments_list = []
 saved_models = []
 
 
+
 def get_model(name):
     for model in models:
         if model["name"] == name:
             return model
     return None
 
+
+
 def sign_in(email, password):
+
     if not email or "@" not in email:
         return (
-            "### Please enter a valid email address.",
-            "Status: Not signed in"
+            "Please enter a valid email address.",
+            "Status: **Not signed in**"
         )
 
     name = (
@@ -140,17 +148,23 @@ def sign_in(email, password):
 
     return (
         f"## Welcome, {name}\nYou have successfully signed in to AetherAI.",
-        f"Signed in as: **{name}**"
+        f"Status: **Signed in as {name}**"
     )
+
+
 def continue_as_guest():
+
     current_user["signed_in"] = True
     current_user["name"] = "Guest User"
     current_user["email"] = "guest@aetherai.com"
 
     return (
         "## Welcome, Guest User\nYou are now exploring the AetherAI marketplace.",
-        "Signed in as: **Guest User**"
+        "Status: **Guest User**"
     )
+
+
+
 def search_models(search, category, min_trust):
 
     results = df.copy()
@@ -163,10 +177,15 @@ def search_models(search, category, min_trust):
             results["developer"].str.lower().str.contains(search, na=False) |
             results["description"].str.lower().str.contains(search, na=False)
         ]
-if category != "All":
-        results = results[results["category"] == category]
 
-    results = results[results["trust"] >= min_trust]
+    if category != "All":
+        results = results[
+            results["category"] == category
+        ]
+
+    results = results[
+        results["trust"] >= min_trust
+    ]
 
     display = results[
         [
@@ -181,7 +200,8 @@ if category != "All":
             "rating"
         ]
     ].copy()
-display.columns = [
+
+    display.columns = [
         "Model",
         "Developer",
         "Category",
@@ -194,6 +214,9 @@ display.columns = [
     ]
 
     return display
+
+
+
 def show_model_details(name):
 
     model = get_model(name)
@@ -201,7 +224,11 @@ def show_model_details(name):
     if not model:
         return "Please select a model."
 
-    verification = "Verified" if model["verified"] else "Pending Verification"
+    verification = (
+        "Verified"
+        if model["verified"]
+        else "Pending Verification"
+    )
 
     return f"""
 # {model["name"]}
@@ -235,6 +262,9 @@ def show_model_details(name):
 | Active Deployments | {model["deployments"]:,} |
 | Community Reviews | {model["reviews"]:,} |
 """
+
+
+
 def save_model(name):
 
     if not name:
@@ -242,9 +272,11 @@ def save_model(name):
 
     if name not in saved_models:
         saved_models.append(name)
-        return f"### {name} saved to your favourites."
+        return f"### {name} saved successfully."
 
-    return f"### {name} is already saved."
+    return f"### {name} is already in your saved models."
+
+
 def compare_models(selected_models):
 
     if not selected_models:
@@ -252,7 +284,9 @@ def compare_models(selected_models):
 
     selected_models = selected_models[:3]
 
-    results = df[df["name"].isin(selected_models)].copy()
+    results = df[
+        df["name"].isin(selected_models)
+    ].copy()
 
     display = results[
         [
@@ -265,7 +299,7 @@ def compare_models(selected_models):
             "rating",
             "deployments"
         ]
-    ]
+    ].copy()
 
     display.columns = [
         "Model",
@@ -279,6 +313,9 @@ def compare_models(selected_models):
     ]
 
     return display
+
+
+
 def trust_explanation(name):
 
     model = get_model(name)
@@ -292,6 +329,7 @@ def trust_explanation(name):
     creator_score = round(score * 0.25)
     reviews_score = round(score * 0.20)
     security_score = round(score * 0.15)
+
     documentation_score = (
         score
         - benchmark_score
@@ -314,16 +352,16 @@ AetherAI explains why a model is trusted instead of asking users to rely only on
 | Documentation Quality | {documentation_score}/10 |
 
 ### Why this matters
+
 The Aether Trust Score gives users a transparent way to evaluate AI models before purchasing or deploying them.
 """
+
+
+
 def purchase_model(name):
 
     if not current_user["signed_in"]:
-        return """
-# Sign In Required
-
-Please sign in before purchasing a model.
-"""
+        return "# Sign In Required\nPlease sign in before purchasing a model."
 
     model = get_model(name)
 
@@ -334,13 +372,14 @@ Please sign in before purchasing a model.
         purchase["model"] == model["name"]
         for purchase in purchases
     )
-if already_purchased:
+
+    if already_purchased:
         return f"""
 # Already Purchased
 
 You already have access to **{model["name"]}**.
 
-You can deploy it from the Deploy section.
+You can now deploy it from the Deploy section.
 """
 
     platform_fee = round(model["price"] * 0.05)
@@ -353,7 +392,8 @@ You can deploy it from the Deploy section.
         "model_price": model["price"],
         "platform_fee": platform_fee
     })
-return f"""
+
+    return f"""
 # Purchase Successful
 
 You now have access to **{model["name"]}**.
@@ -363,16 +403,19 @@ You now have access to **{model["name"]}**.
 | Model Price | ₹{model["price"]:,} |
 | Platform Fee | ₹{platform_fee:,} |
 | **Total Paid** | **₹{total:,}** |
-
-The model has been added to your AetherAI account.
 """
 
 
+
 def is_purchased(name):
+
     return any(
         purchase["model"] == name
         for purchase in purchases
     )
+
+
+
 def deploy_model(
     name,
     deployment_name,
@@ -381,11 +424,7 @@ def deploy_model(
 ):
 
     if not current_user["signed_in"]:
-        return """
-# Sign In Required
-
-Please sign in before deploying a model.
-"""
+        return "# Sign In Required\nPlease sign in before deploying."
 
     model = get_model(name)
 
@@ -396,9 +435,7 @@ Please sign in before deploying a model.
         return f"""
 # Purchase Required
 
-You need to purchase **{name}** before deployment.
-
-Go to the Purchase section first.
+Please purchase **{name}** before deploying it.
 """
 
     if not deployment_name:
@@ -411,8 +448,10 @@ Go to the Purchase section first.
     endpoint_id = str(uuid.uuid4())[:8]
 
     endpoint = (
-        f"https://api.aetherai.demo/v1/"
-        f"{model['id']}/{endpoint_id}"
+        "https://api.aetherai.demo/v1/"
+        + model["id"]
+        + "/"
+        + endpoint_id
     )
 
     deployments_list.append({
@@ -428,7 +467,7 @@ Go to the Purchase section first.
     return f"""
 # Deployment Successful
 
-Your AI model is now active.
+Your model is now active.
 
 | Setting | Value |
 |---|---|
@@ -438,12 +477,13 @@ Your AI model is now active.
 | Environment | {environment} |
 | Status | Active |
 
-### API Endpoint
+### Demo API Endpoint
 
 `{endpoint}`
-
-Your endpoint is ready for demonstration.
 """
+
+
+
 def dashboard_data():
 
     total_spend = sum(
@@ -463,7 +503,6 @@ def dashboard_data():
 | Average Marketplace Trust Score | {df["trust"].mean():.1f}/100 |
 """
 
-    # Always show a chart
     if purchases:
 
         purchase_df = pd.DataFrame(purchases)
@@ -482,7 +521,11 @@ def dashboard_data():
                 "VisionForge CV",
                 "MedInsight AI"
             ],
-            "amount": [2499, 1899, 3999]
+            "amount": [
+                2499,
+                1899,
+                3999
+            ]
         })
 
     spending_chart = px.bar(
@@ -517,18 +560,17 @@ def dashboard_data():
     )
 
     spending_chart.update_layout(
-        template="plotly_white",
-        paper_bgcolor="white",
-        plot_bgcolor="white"
+        template="plotly_white"
     )
 
     activity_chart.update_layout(
-        template="plotly_white",
-        paper_bgcolor="white",
-        plot_bgcolor="white"
+        template="plotly_white"
     )
 
     return stats, spending_chart, activity_chart
+
+
+
 def publish_model(
     name,
     developer,
@@ -541,11 +583,7 @@ def publish_model(
 ):
 
     if not name or not developer or not description:
-        return """
-# Missing Information
-
-Please enter the model name, developer name and description.
-"""
+        return "# Missing Information\nPlease enter the model name, developer name and description."
 
     global df
 
@@ -567,6 +605,7 @@ Please enter the model name, developer name and description.
     }
 
     models.append(new_model)
+
     df = pd.DataFrame(models)
 
     return f"""
@@ -574,13 +613,221 @@ Please enter the model name, developer name and description.
 
 **{name}** has been added to the AetherAI marketplace.
 
-### Initial Verification
+### Initial Status
 
 - Initial Aether Trust Score: **85/100**
-- Status: **Pending Verification**
+- Verification: **Pending**
 - Monetization: **Enabled**
-
-Your model is now ready to be discovered by marketplace users.
 """
+
+
+
+def aether_ai_assistant(message, history):
+
+    if not message or not message.strip():
+        return history, ""
+
+    user_message = message.lower().strip()
+
+    # MODEL RECOMMENDATIONS
+    if any(word in user_message for word in [
+        "recommend", "best", "suggest", "which model", "choose"
+    ]):
+
+        if any(word in user_message for word in [
+            "health", "medical", "hospital", "clinical"
+        ]):
+
+            reply = (
+                "For healthcare-related use cases, I recommend "
+                "MedInsight AI. It has a Trust Score of 98/100, "
+                "accuracy of 97%, and a benchmark score of 95/100."
+            )
+
+        elif any(word in user_message for word in [
+            "image", "picture", "creative", "design"
+        ]):
+
+            reply = (
+                "For image generation, I recommend PixelCraft. "
+                "It is designed for creative workflows and costs "
+                "₹1,299 per month."
+            )
+
+        elif any(word in user_message for word in [
+            "speech", "voice", "audio"
+        ]):
+
+            reply = (
+                "For speech and audio applications, I recommend "
+                "BharatSpeech. It is optimized for multilingual "
+                "and Indian language workflows."
+            )
+
+        elif any(word in user_message for word in [
+            "finance", "financial", "forecast"
+        ]):
+
+            reply = (
+                "For financial analysis and forecasting, I recommend "
+                "FinSight AI. It has a Trust Score of 95/100 and "
+                "an accuracy of 94%."
+            )
+
+        elif any(word in user_message for word in [
+            "cheap", "budget", "affordable"
+        ]):
+
+            affordable = sorted(
+                models,
+                key=lambda x: x["price"]
+            )[:3]
+
+            reply = "Here are the most affordable models:\n\n"
+
+            for model in affordable:
+                reply += (
+                    f"{model['name']}: "
+                    f"₹{model['price']:,}/month | "
+                    f"Trust Score: {model['trust']}/100\n"
+                )
+
+        else:
+
+            reply = (
+                "For general AI tasks, I recommend AetherGPT Pro. "
+                "For healthcare, choose MedInsight AI. "
+                "For image generation, choose PixelCraft. "
+                "For finance, choose FinSight AI."
+            )
+
+    # PRICING
+    elif any(word in user_message for word in [
+        "price", "cost", "pricing", "how much", "rupees"
+    ]):
+
+        reply = "AetherAI Model Pricing:\n\n"
+
+        for model in models:
+            reply += (
+                f"{model['name']}: "
+                f"₹{model['price']:,}/month\n"
+            )
+
+    # TRUST
+    elif any(word in user_message for word in [
+        "trust", "reliable", "safe", "verification"
+    ]):
+
+        best_trust = max(
+            models,
+            key=lambda x: x["trust"]
+        )
+
+        reply = (
+            f"{best_trust['name']} currently has the highest "
+            f"Aether Trust Score at {best_trust['trust']}/100.\n\n"
+            "The score considers benchmark reliability, creator "
+            "verification, community reviews, security assessment "
+            "and documentation quality."
+        )
+
+    # ACCURACY
+    elif any(word in user_message for word in [
+        "accuracy", "accurate", "performance", "benchmark"
+    ]):
+
+        best_accuracy = max(
+            models,
+            key=lambda x: x["accuracy"]
+        )
+
+        reply = (
+            f"{best_accuracy['name']} currently has the highest "
+            f"accuracy at {best_accuracy['accuracy']}%.\n\n"
+            f"Its benchmark score is "
+            f"{best_accuracy['benchmark']}/100."
+        )
+
+    # LIST MODELS
+    elif any(word in user_message for word in [
+        "models", "available", "show models", "list models"
+    ]):
+
+        reply = "Available Models on AetherAI:\n\n"
+
+        for model in models:
+            reply += (
+                f"{model['name']}\n"
+                f"Category: {model['category']}\n"
+                f"Price: ₹{model['price']:,}/month\n"
+                f"Trust Score: {model['trust']}/100\n\n"
+            )
+
+    # PURCHASE
+    elif any(word in user_message for word in [
+        "buy", "purchase"
+    ]):
+
+        reply = (
+            "Go to the Purchase tab, select your model and click "
+            "Buy Model Access. After purchasing, you can deploy "
+            "it from the Deploy tab."
+        )
+
+    # DEPLOYMENT
+    elif any(word in user_message for word in [
+        "deploy", "deployment", "api"
+    ]):
+
+        reply = (
+            "First purchase the model through the Purchase tab. "
+            "Then go to Deploy, select the model, choose a region "
+            "and environment, and click Deploy Model."
+        )
+
+    # CREATOR
+    elif any(word in user_message for word in [
+        "sell", "creator", "publish", "monetize", "monetise"
+    ]):
+
+        reply = (
+            "Use Creator Studio to publish and monetize your AI model. "
+            "Enter the model details, pricing and performance metrics, "
+            "then click Publish Model."
+        )
+
+    # GREETING
+    elif any(word in user_message for word in [
+        "hello", "hi", "hey"
+    ]):
+
+        reply = (
+            "Hello. I am the AetherAI Assistant. I can help you "
+            "choose models, compare prices, check Trust Scores "
+            "and understand deployment."
+        )
+
+    # DEFAULT
+    else:
+
+        reply = (
+            "I can help you with AetherAI. Try asking:\n\n"
+            "• Which model is best for healthcare?\n"
+            "• What is the cheapest model?\n"
+            "• Show me all model prices\n"
+            "• Which model has the highest Trust Score?\n"
+            "• How do I deploy a model?"
+        )
+
+    if history is None:
+        history = []
+
+    history.append(
+        (message, reply)
+    )
+
+    return history, ""
+
 
 print("AetherAI backend loaded successfully.")
