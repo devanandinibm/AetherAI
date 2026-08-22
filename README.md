@@ -14,3 +14,11 @@ Trust Score is basically a single number that tells a user how confident they ca
 ## Model Comparison
 
 Compare up to three AI models side-by-side.
+
+## Model Details
+
+Every model has a dedicated overview containing its developer, category, verification status, pricing, performance metrics, deployments and community reviews.
+
+## Purchase & Access
+
+Users can purchase access to models through the marketplace with transparent pricing in Indian Rupees.
