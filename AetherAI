@@ -5,11 +5,10 @@ import plotly.express as px
 import uuid
 
 
-
 models = [
     {
         "id": "aethergpt-pro",
-        "name": "AetherGPT Pro",
+        "name": "AetherAI Pro",
         "developer": "Aether Labs",
         "category": "Large Language Models",
         "description": "Enterprise-grade language model for reasoning, content generation and intelligent automation.",
@@ -135,12 +134,7 @@ def sign_in(email, password):
             "Status: **Not signed in**"
         )
 
-    name = (
-        email.split("@")[0]
-        .replace(".", " ")
-        .replace("_", " ")
-        .title()
-    )
+    name = email.split("@")[0].replace(".", " ").replace("_", " ").title()
 
     current_user["signed_in"] = True
     current_user["name"] = name
@@ -170,7 +164,7 @@ def search_models(search, category, min_trust):
     results = df.copy()
 
     if search:
-        search = search.lower()
+        search = str(search).lower()
 
         results = results[
             results["name"].str.lower().str.contains(search, na=False) |
@@ -179,13 +173,9 @@ def search_models(search, category, min_trust):
         ]
 
     if category != "All":
-        results = results[
-            results["category"] == category
-        ]
+        results = results[results["category"] == category]
 
-    results = results[
-        results["trust"] >= min_trust
-    ]
+    results = results[results["trust"] >= min_trust]
 
     display = results[
         [
@@ -217,6 +207,7 @@ def search_models(search, category, min_trust):
 
 
 
+
 def show_model_details(name):
 
     model = get_model(name)
@@ -224,11 +215,7 @@ def show_model_details(name):
     if not model:
         return "Please select a model."
 
-    verification = (
-        "Verified"
-        if model["verified"]
-        else "Pending Verification"
-    )
+    verification = "Verified" if model["verified"] else "Pending Verification"
 
     return f"""
 # {model["name"]}
@@ -265,6 +252,7 @@ def show_model_details(name):
 
 
 
+
 def save_model(name):
 
     if not name:
@@ -277,6 +265,8 @@ def save_model(name):
     return f"### {name} is already in your saved models."
 
 
+
+
 def compare_models(selected_models):
 
     if not selected_models:
@@ -284,9 +274,7 @@ def compare_models(selected_models):
 
     selected_models = selected_models[:3]
 
-    results = df[
-        df["name"].isin(selected_models)
-    ].copy()
+    results = df[df["name"].isin(selected_models)].copy()
 
     display = results[
         [
@@ -358,6 +346,7 @@ The Aether Trust Score gives users a transparent way to evaluate AI models befor
 
 
 
+
 def purchase_model(name):
 
     if not current_user["signed_in"]:
@@ -407,6 +396,7 @@ You now have access to **{model["name"]}**.
 
 
 
+
 def is_purchased(name):
 
     return any(
@@ -415,13 +405,7 @@ def is_purchased(name):
     )
 
 
-
-def deploy_model(
-    name,
-    deployment_name,
-    region,
-    environment
-):
+def deploy_model(name, deployment_name, region, environment):
 
     if not current_user["signed_in"]:
         return "# Sign In Required\nPlease sign in before deploying."
@@ -432,18 +416,10 @@ def deploy_model(
         return "Please select a valid model."
 
     if not is_purchased(name):
-        return f"""
-# Purchase Required
-
-Please purchase **{name}** before deploying it.
-"""
+        return f"# Purchase Required\nPlease purchase **{name}** before deploying it."
 
     if not deployment_name:
-        deployment_name = (
-            name.lower()
-            .replace(" ", "-")
-            + "-deployment"
-        )
+        deployment_name = name.lower().replace(" ", "-") + "-deployment"
 
     endpoint_id = str(uuid.uuid4())[:8]
 
@@ -559,15 +535,11 @@ def dashboard_data():
         title="AetherAI Activity"
     )
 
-    spending_chart.update_layout(
-        template="plotly_white"
-    )
-
-    activity_chart.update_layout(
-        template="plotly_white"
-    )
+    spending_chart.update_layout(template="plotly_white")
+    activity_chart.update_layout(template="plotly_white")
 
     return stats, spending_chart, activity_chart
+
 
 
 
@@ -605,7 +577,6 @@ def publish_model(
     }
 
     models.append(new_model)
-
     df = pd.DataFrame(models)
 
     return f"""
@@ -622,178 +593,138 @@ def publish_model(
 
 
 
+
 def aether_ai_assistant(message, history):
 
-    if not message or not message.strip():
+    # Make history a normal list
+    if history is None:
+        history = []
+
+    message = str(message or "").strip()
+
+    # Do nothing for empty messages
+    if message == "":
         return history, ""
 
-    user_message = message.lower().strip()
+    user_message = message.lower()
 
-    # MODEL RECOMMENDATIONS
+    # Default response
+    reply = (
+        "I can help you discover AI models, compare pricing, check "
+        "Trust Scores, evaluate performance, and understand purchasing "
+        "or deployment."
+    )
+
+    # HEALTHCARE
     if any(word in user_message for word in [
-        "recommend", "best", "suggest", "which model", "choose"
+        "health", "medical", "hospital", "clinical"
     ]):
+        reply = (
+            "For healthcare-related use cases, I recommend MedInsight AI. "
+            "It has an Aether Trust Score of 98/100 and an accuracy of 97%."
+        )
 
-        if any(word in user_message for word in [
-            "health", "medical", "hospital", "clinical"
-        ]):
-
-            reply = (
-                "For healthcare-related use cases, I recommend "
-                "MedInsight AI. It has a Trust Score of 98/100, "
-                "accuracy of 97%, and a benchmark score of 95/100."
-            )
-
-        elif any(word in user_message for word in [
-            "image", "picture", "creative", "design"
-        ]):
-
-            reply = (
-                "For image generation, I recommend PixelCraft. "
-                "It is designed for creative workflows and costs "
-                "₹1,299 per month."
-            )
-
-        elif any(word in user_message for word in [
-            "speech", "voice", "audio"
-        ]):
-
-            reply = (
-                "For speech and audio applications, I recommend "
-                "BharatSpeech. It is optimized for multilingual "
-                "and Indian language workflows."
-            )
-
-        elif any(word in user_message for word in [
-            "finance", "financial", "forecast"
-        ]):
-
-            reply = (
-                "For financial analysis and forecasting, I recommend "
-                "FinSight AI. It has a Trust Score of 95/100 and "
-                "an accuracy of 94%."
-            )
-
-        elif any(word in user_message for word in [
-            "cheap", "budget", "affordable"
-        ]):
-
-            affordable = sorted(
-                models,
-                key=lambda x: x["price"]
-            )[:3]
-
-            reply = "Here are the most affordable models:\n\n"
-
-            for model in affordable:
-                reply += (
-                    f"{model['name']}: "
-                    f"₹{model['price']:,}/month | "
-                    f"Trust Score: {model['trust']}/100\n"
-                )
-
-        else:
-
-            reply = (
-                "For general AI tasks, I recommend AetherGPT Pro. "
-                "For healthcare, choose MedInsight AI. "
-                "For image generation, choose PixelCraft. "
-                "For finance, choose FinSight AI."
-            )
-
-    # PRICING
+    # IMAGE
     elif any(word in user_message for word in [
-        "price", "cost", "pricing", "how much", "rupees"
+        "image", "picture", "creative", "design"
     ]):
+        reply = (
+            "For image generation and creative workflows, I recommend "
+            "PixelCraft. It costs ₹1,299 per month."
+        )
 
-        reply = "AetherAI Model Pricing:\n\n"
+    # SPEECH
+    elif any(word in user_message for word in [
+        "speech", "voice", "audio"
+    ]):
+        reply = (
+            "For speech and audio applications, I recommend BharatSpeech. "
+            "It is optimized for multilingual and Indian language workflows."
+        )
 
-        for model in models:
-            reply += (
-                f"{model['name']}: "
-                f"₹{model['price']:,}/month\n"
-            )
+    # FINANCE
+    elif any(word in user_message for word in [
+        "finance", "financial", "forecast"
+    ]):
+        reply = (
+            "For financial analysis and forecasting, I recommend FinSight AI. "
+            "It has a Trust Score of 95/100 and an accuracy of 94%."
+        )
+
+    # CHEAPEST
+    elif any(word in user_message for word in [
+        "cheap", "cheapest", "affordable", "budget"
+    ]):
+        reply = (
+            "The most affordable model is PixelCraft at ₹1,299 per month. "
+            "BharatSpeech is next at ₹1,499 per month."
+        )
+
+    # PRICE
+    elif any(word in user_message for word in [
+        "price", "cost", "pricing", "how much"
+    ]):
+        reply = (
+            "Current pricing: PixelCraft ₹1,299, BharatSpeech ₹1,499, "
+            "VisionForge CV ₹1,899, AetherGPT Pro ₹2,499, "
+            "FinSight AI ₹2,999, and MedInsight AI ₹3,999 per month."
+        )
 
     # TRUST
     elif any(word in user_message for word in [
         "trust", "reliable", "safe", "verification"
     ]):
-
-        best_trust = max(
-            models,
-            key=lambda x: x["trust"]
-        )
-
         reply = (
-            f"{best_trust['name']} currently has the highest "
-            f"Aether Trust Score at {best_trust['trust']}/100.\n\n"
-            "The score considers benchmark reliability, creator "
-            "verification, community reviews, security assessment "
-            "and documentation quality."
+            "MedInsight AI has the highest Aether Trust Score at 98/100. "
+            "The score considers benchmarks, creator verification, "
+            "community reviews, security and documentation."
         )
 
     # ACCURACY
     elif any(word in user_message for word in [
         "accuracy", "accurate", "performance", "benchmark"
     ]):
-
-        best_accuracy = max(
-            models,
-            key=lambda x: x["accuracy"]
-        )
-
         reply = (
-            f"{best_accuracy['name']} currently has the highest "
-            f"accuracy at {best_accuracy['accuracy']}%.\n\n"
-            f"Its benchmark score is "
-            f"{best_accuracy['benchmark']}/100."
+            "MedInsight AI has the highest accuracy at 97%. "
+            "VisionForge CV follows with 96% accuracy."
         )
 
-    # LIST MODELS
+    # MODELS
     elif any(word in user_message for word in [
-        "models", "available", "show models", "list models"
+        "models", "available", "list"
     ]):
-
-        reply = "Available Models on AetherAI:\n\n"
-
-        for model in models:
-            reply += (
-                f"{model['name']}\n"
-                f"Category: {model['category']}\n"
-                f"Price: ₹{model['price']:,}/month\n"
-                f"Trust Score: {model['trust']}/100\n\n"
-            )
+        reply = (
+            "Available models are AetherGPT Pro, VisionForge CV, "
+            "MedInsight AI, BharatSpeech, PixelCraft and FinSight AI."
+        )
 
     # PURCHASE
     elif any(word in user_message for word in [
-        "buy", "purchase"
+        "buy", "purchase", "payment"
     ]):
-
         reply = (
-            "Go to the Purchase tab, select your model and click "
-            "Buy Model Access. After purchasing, you can deploy "
-            "it from the Deploy tab."
+            "Go to the Purchase tab, select a model and click "
+            "Buy Model Access. Once purchased, you can deploy it."
         )
 
-    # DEPLOYMENT
+    # DEPLOY
     elif any(word in user_message for word in [
-        "deploy", "deployment", "api"
+        "deploy", "deployment", "api", "endpoint"
     ]):
-
         reply = (
-            "First purchase the model through the Purchase tab. "
-            "Then go to Deploy, select the model, choose a region "
-            "and environment, and click Deploy Model."
+            "First purchase the model. Then open the Deploy tab, "
+            "select the model, enter a deployment name, choose a region "
+            "and environment, then click Deploy Model."
         )
 
     # CREATOR
     elif any(word in user_message for word in [
-        "sell", "creator", "publish", "monetize", "monetise"
+        "sell", "creator", "publish", "monetize",
+        "monetise", "upload"
     ]):
-
         reply = (
             "Use Creator Studio to publish and monetize your AI model. "
-            "Enter the model details, pricing and performance metrics, "
+            "Add the model details, price and performance metrics, "
             "then click Publish Model."
         )
 
@@ -801,33 +732,16 @@ def aether_ai_assistant(message, history):
     elif any(word in user_message for word in [
         "hello", "hi", "hey"
     ]):
-
         reply = (
-            "Hello. I am the AetherAI Assistant. I can help you "
-            "choose models, compare prices, check Trust Scores "
-            "and understand deployment."
+            "Hello. I am the AetherAI Assistant. Ask me about AI models, "
+            "pricing, Trust Scores, performance or deployment."
         )
 
-    # DEFAULT
-    else:
+    # Add the conversation using a simple list
+    new_history = list(history)
+    new_history.append([message, reply])
 
-        reply = (
-            "I can help you with AetherAI. Try asking:\n\n"
-            "• Which model is best for healthcare?\n"
-            "• What is the cheapest model?\n"
-            "• Show me all model prices\n"
-            "• Which model has the highest Trust Score?\n"
-            "• How do I deploy a model?"
-        )
-
-    if history is None:
-        history = []
-
-    history.append(
-        (message, reply)
-    )
-
-    return history, ""
+    return new_history, ""
 
 
 print("AetherAI backend loaded successfully.")
@@ -1065,13 +979,9 @@ td {
 }
 """
 
-
 def login_and_open(email, password):
 
-    message, status = sign_in(
-        email,
-        password
-    )
+    message, status = sign_in(email, password)
 
     return (
         gr.update(visible=False),
@@ -1091,8 +1001,6 @@ def guest_and_open():
         status,
         message
     )
-
-
 
 
 with gr.Blocks(
@@ -1117,9 +1025,7 @@ with gr.Blocks(
 
             with gr.Column(scale=1):
 
-                gr.Markdown(
-                    "## Sign in to continue"
-                )
+                gr.Markdown("## Sign in to continue")
 
                 login_email = gr.Textbox(
                     label="Email Address",
@@ -1165,6 +1071,7 @@ with gr.Blocks(
                 """)
 
 
+
     with gr.Column(
         visible=False
     ) as main_app:
@@ -1195,16 +1102,12 @@ with gr.Blocks(
         """)
 
 
-
         with gr.Tabs():
-
 
 
             with gr.Tab("Marketplace"):
 
-                gr.Markdown(
-                    "# AI Model Marketplace"
-                )
+                gr.Markdown("# AI Model Marketplace")
 
                 with gr.Row():
 
@@ -1241,11 +1144,7 @@ with gr.Blocks(
                 )
 
                 marketplace_table = gr.Dataframe(
-                    value=search_models(
-                        "",
-                        "All",
-                        0
-                    ),
+                    value=search_models("", "All", 0),
                     interactive=False,
                     label="Available AI Models"
                 )
@@ -1260,9 +1159,7 @@ with gr.Blocks(
                     outputs=marketplace_table
                 )
 
-                gr.Markdown(
-                    "## Model Details"
-                )
+                gr.Markdown("## Model Details")
 
                 marketplace_model_selector = gr.Dropdown(
                     choices=[
@@ -1299,73 +1196,9 @@ with gr.Blocks(
                 )
 
 
-
-            with gr.Tab("AI Assistant"):
-
-                gr.Markdown("""
-                # AetherAI Assistant
-
-                Ask about model recommendations, pricing,
-                Trust Scores, accuracy, purchasing or deployment.
-                """)
-
-                chatbot = gr.Chatbot(
-                    height=450,
-                    label="AetherAI Assistant"
-                )
-
-                chatbot_input = gr.Textbox(
-                    label="Ask AetherAI",
-                    placeholder="Which model is best for healthcare?"
-                )
-
-                with gr.Row():
-
-                    chatbot_send = gr.Button(
-                        "Send",
-                        variant="primary"
-                    )
-
-                    chatbot_clear = gr.Button(
-                        "Clear Chat"
-                    )
-
-                chatbot_send.click(
-                    aether_ai_assistant,
-                    inputs=[
-                        chatbot_input,
-                        chatbot
-                    ],
-                    outputs=[
-                        chatbot,
-                        chatbot_input
-                    ]
-                )
-
-                chatbot_input.submit(
-                    aether_ai_assistant,
-                    inputs=[
-                        chatbot_input,
-                        chatbot
-                    ],
-                    outputs=[
-                        chatbot,
-                        chatbot_input
-                    ]
-                )
-
-                chatbot_clear.click(
-                    lambda: [],
-                    outputs=chatbot
-                )
-
-
-
             with gr.Tab("Compare Models"):
 
-                gr.Markdown(
-                    "# Compare AI Models"
-                )
+                gr.Markdown("# Compare AI Models")
 
                 compare_selector = gr.Dropdown(
                     choices=[
@@ -1393,13 +1226,10 @@ with gr.Blocks(
                 )
 
 
-    
 
             with gr.Tab("Trust & Verification"):
 
-                gr.Markdown(
-                    "# Aether Trust Score"
-                )
+                gr.Markdown("# Aether Trust Score")
 
                 trust_selector = gr.Dropdown(
                     choices=[
@@ -1421,7 +1251,6 @@ with gr.Blocks(
                     inputs=trust_selector,
                     outputs=trust_output
                 )
-
 
 
             with gr.Tab("Purchase"):
@@ -1454,12 +1283,11 @@ with gr.Blocks(
                 )
 
 
+    
 
             with gr.Tab("Deploy"):
 
-                gr.Markdown(
-                    "# One-Click Deployment"
-                )
+                gr.Markdown("# One-Click Deployment")
 
                 deploy_selector = gr.Dropdown(
                     choices=[
@@ -1516,12 +1344,11 @@ with gr.Blocks(
                 )
 
 
+        
 
             with gr.Tab("Dashboard"):
 
-                gr.Markdown(
-                    "# Your AetherAI Dashboard"
-                )
+                gr.Markdown("# Your AetherAI Dashboard")
 
                 dashboard_button = gr.Button(
                     "Refresh Dashboard",
@@ -1549,6 +1376,8 @@ with gr.Blocks(
                     ]
                 )
 
+
+        
 
             with gr.Tab("Creator Studio"):
 
@@ -1633,7 +1462,85 @@ with gr.Blocks(
                 )
 
 
-  
+    
+
+        chat_open_button = gr.Button(
+            "AI",
+            elem_classes="floating-chat-button"
+        )
+
+        with gr.Column(
+            visible=False,
+            elem_classes="chat-window"
+        ) as floating_chat:
+
+            with gr.Row():
+
+                with gr.Column(scale=4):
+
+                    gr.Markdown(
+                        "### AetherAI Assistant"
+                    )
+
+                with gr.Column(scale=1):
+
+                    chat_close_button = gr.Button(
+                        "Close"
+                    )
+
+            floating_chatbot = gr.Chatbot(
+                height=350,
+                label="AetherAI Assistant",
+                value=[]
+            )
+
+            floating_chat_input = gr.Textbox(
+                placeholder="Ask about AI models...",
+                show_label=False
+            )
+
+            floating_chat_send = gr.Button(
+                "Send",
+                variant="primary"
+            )
+
+
+        chat_open_button.click(
+            lambda: gr.update(visible=True),
+            outputs=floating_chat
+        )
+
+        chat_close_button.click(
+            lambda: gr.update(visible=False),
+            outputs=floating_chat
+        )
+
+        floating_chat_send.click(
+            aether_ai_assistant,
+            inputs=[
+                floating_chat_input,
+                floating_chatbot
+            ],
+            outputs=[
+                floating_chatbot,
+                floating_chat_input
+            ]
+        )
+
+        floating_chat_input.submit(
+            aether_ai_assistant,
+            inputs=[
+                floating_chat_input,
+                floating_chatbot
+            ],
+            outputs=[
+                floating_chatbot,
+                floating_chat_input
+            ]
+        )
+
+
+
 
     login_button.click(
         login_and_open,
@@ -1660,4 +1567,4 @@ with gr.Blocks(
     )
 
 
-print("AetherAI UI loaded successfully.")
+print("AetherAI UI with floating chatbot loaded successfully.")
