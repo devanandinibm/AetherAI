@@ -831,3 +831,650 @@ def aether_ai_assistant(message, history):
 
 
 print("AetherAI backend loaded successfully.")
+
+
+custom_css = """
+:root {
+    color-scheme: dark !important;
+}
+
+html, body, .gradio-container {
+    background: #374F6B !important;
+    color: #1f2937 !important;
+}
+
+.gradio-container {
+    max-width: 1450px !important;
+    margin: auto !important;
+}
+
+footer {
+    display: none !important;
+}
+
+.hero {
+    background: #546477 !important;
+    border: 1px solid #d9dee5 !important;
+    border-radius: 16px !important;
+    padding: 30px !important;
+    margin-bottom: 20px !important;
+}
+
+.gr-block,
+.gr-box,
+.gr-panel,
+.gr-group,
+.gr-form {
+    background: white !important;
+    color: #1f2937 !important;
+}
+
+input,
+textarea,
+select {
+    background: white !important;
+    color: #111827 !important;
+}
+
+button {
+    border-radius: 8px !important;
+}
+"""
+
+
+
+def login_and_open(email, password):
+
+    message, status = sign_in(
+        email,
+        password
+    )
+
+    return (
+        gr.update(visible=False),
+        gr.update(visible=True),
+        status,
+        message
+    )
+
+
+def guest_and_open():
+
+    message, status = continue_as_guest()
+
+    return (
+        gr.update(visible=False),
+        gr.update(visible=True),
+        status,
+        message
+    )
+
+
+
+
+with gr.Blocks(
+    title="AetherAI",
+    fill_width=True
+) as app:
+
+
+    with gr.Column(
+        visible=True
+    ) as login_screen:
+
+        gr.Markdown("""
+        <div class="hero">
+        <h1>AetherAI</h1>
+        <h3>Trusted AI Model Marketplace</h3>
+        <p>Discover. Compare. Verify. Purchase. Deploy.</p>
+        </div>
+        """)
+
+        with gr.Row():
+
+            with gr.Column(scale=1):
+
+                gr.Markdown(
+                    "## Sign in to continue"
+                )
+
+                login_email = gr.Textbox(
+                    label="Email Address",
+                    placeholder="you@example.com"
+                )
+
+                login_password = gr.Textbox(
+                    label="Password",
+                    type="password",
+                    placeholder="Enter your password"
+                )
+
+                login_button = gr.Button(
+                    "Sign In",
+                    variant="primary"
+                )
+
+                guest_button = gr.Button(
+                    "Continue as Guest"
+                )
+
+                login_message = gr.Markdown()
+
+            with gr.Column(scale=1):
+
+                gr.Markdown("""
+                ## Why AetherAI?
+
+                **Discover AI Models**  
+                Find AI models based on capability and use case.
+
+                **Compare Transparently**  
+                Evaluate pricing, benchmarks, accuracy and latency.
+
+                **Verify Trust**  
+                Understand the evidence behind every Trust Score.
+
+                **Deploy Easily**  
+                Move from discovery to deployment through one platform.
+
+                **Monetize Your Work**  
+                AI creators can publish and sell their models.
+                """)
+
+
+    with gr.Column(
+        visible=False
+    ) as main_app:
+
+        with gr.Row():
+
+            with gr.Column(scale=4):
+
+                gr.Markdown("""
+                # AetherAI
+                ### Trusted AI Model Marketplace
+                """)
+
+            with gr.Column(scale=1):
+
+                user_status = gr.Markdown(
+                    "Status: **Signed in**"
+                )
+
+        gr.Markdown("""
+        <div class="hero">
+        <h2>Discover the right AI. Know why you can trust it.</h2>
+        <p>
+        Compare AI models, evaluate transparent benchmarks,
+        purchase access and deploy through one accessible platform.
+        </p>
+        </div>
+        """)
+
+
+
+        with gr.Tabs():
+
+
+
+            with gr.Tab("Marketplace"):
+
+                gr.Markdown(
+                    "# AI Model Marketplace"
+                )
+
+                with gr.Row():
+
+                    search_input = gr.Textbox(
+                        label="Search",
+                        placeholder="Search models or developers"
+                    )
+
+                    category_filter = gr.Dropdown(
+                        choices=[
+                            "All",
+                            "Large Language Models",
+                            "Computer Vision",
+                            "Healthcare AI",
+                            "Speech and Audio",
+                            "Image Generation",
+                            "Finance AI"
+                        ],
+                        value="All",
+                        label="Category"
+                    )
+
+                    trust_filter = gr.Slider(
+                        minimum=0,
+                        maximum=100,
+                        value=0,
+                        step=1,
+                        label="Minimum Trust Score"
+                    )
+
+                search_button = gr.Button(
+                    "Search Models",
+                    variant="primary"
+                )
+
+                marketplace_table = gr.Dataframe(
+                    value=search_models(
+                        "",
+                        "All",
+                        0
+                    ),
+                    interactive=False,
+                    label="Available AI Models"
+                )
+
+                search_button.click(
+                    search_models,
+                    inputs=[
+                        search_input,
+                        category_filter,
+                        trust_filter
+                    ],
+                    outputs=marketplace_table
+                )
+
+                gr.Markdown(
+                    "## Model Details"
+                )
+
+                marketplace_model_selector = gr.Dropdown(
+                    choices=[
+                        model["name"]
+                        for model in models
+                    ],
+                    label="Select a Model"
+                )
+
+                with gr.Row():
+
+                    details_button = gr.Button(
+                        "View Details",
+                        variant="primary"
+                    )
+
+                    save_button = gr.Button(
+                        "Save Model"
+                    )
+
+                model_details_output = gr.Markdown()
+                save_output = gr.Markdown()
+
+                details_button.click(
+                    show_model_details,
+                    inputs=marketplace_model_selector,
+                    outputs=model_details_output
+                )
+
+                save_button.click(
+                    save_model,
+                    inputs=marketplace_model_selector,
+                    outputs=save_output
+                )
+
+
+
+            with gr.Tab("AI Assistant"):
+
+                gr.Markdown("""
+                # AetherAI Assistant
+
+                Ask about model recommendations, pricing,
+                Trust Scores, accuracy, purchasing or deployment.
+                """)
+
+                chatbot = gr.Chatbot(
+                    height=450,
+                    label="AetherAI Assistant"
+                )
+
+                chatbot_input = gr.Textbox(
+                    label="Ask AetherAI",
+                    placeholder="Which model is best for healthcare?"
+                )
+
+                with gr.Row():
+
+                    chatbot_send = gr.Button(
+                        "Send",
+                        variant="primary"
+                    )
+
+                    chatbot_clear = gr.Button(
+                        "Clear Chat"
+                    )
+
+                chatbot_send.click(
+                    aether_ai_assistant,
+                    inputs=[
+                        chatbot_input,
+                        chatbot
+                    ],
+                    outputs=[
+                        chatbot,
+                        chatbot_input
+                    ]
+                )
+
+                chatbot_input.submit(
+                    aether_ai_assistant,
+                    inputs=[
+                        chatbot_input,
+                        chatbot
+                    ],
+                    outputs=[
+                        chatbot,
+                        chatbot_input
+                    ]
+                )
+
+                chatbot_clear.click(
+                    lambda: [],
+                    outputs=chatbot
+                )
+
+
+
+            with gr.Tab("Compare Models"):
+
+                gr.Markdown(
+                    "# Compare AI Models"
+                )
+
+                compare_selector = gr.Dropdown(
+                    choices=[
+                        model["name"]
+                        for model in models
+                    ],
+                    multiselect=True,
+                    label="Select up to 3 Models"
+                )
+
+                compare_button = gr.Button(
+                    "Compare Models",
+                    variant="primary"
+                )
+
+                compare_output = gr.Dataframe(
+                    interactive=False,
+                    label="Comparison Results"
+                )
+
+                compare_button.click(
+                    compare_models,
+                    inputs=compare_selector,
+                    outputs=compare_output
+                )
+
+
+    
+
+            with gr.Tab("Trust & Verification"):
+
+                gr.Markdown(
+                    "# Aether Trust Score"
+                )
+
+                trust_selector = gr.Dropdown(
+                    choices=[
+                        model["name"]
+                        for model in models
+                    ],
+                    label="Select a Model"
+                )
+
+                trust_button = gr.Button(
+                    "View Trust Breakdown",
+                    variant="primary"
+                )
+
+                trust_output = gr.Markdown()
+
+                trust_button.click(
+                    trust_explanation,
+                    inputs=trust_selector,
+                    outputs=trust_output
+                )
+
+
+
+            with gr.Tab("Purchase"):
+
+                gr.Markdown("""
+                # Purchase Model Access
+
+                Transparent pricing in Indian Rupees.
+                """)
+
+                purchase_selector = gr.Dropdown(
+                    choices=[
+                        model["name"]
+                        for model in models
+                    ],
+                    label="Select a Model"
+                )
+
+                purchase_button = gr.Button(
+                    "Buy Model Access",
+                    variant="primary"
+                )
+
+                purchase_output = gr.Markdown()
+
+                purchase_button.click(
+                    purchase_model,
+                    inputs=purchase_selector,
+                    outputs=purchase_output
+                )
+
+
+
+            with gr.Tab("Deploy"):
+
+                gr.Markdown(
+                    "# One-Click Deployment"
+                )
+
+                deploy_selector = gr.Dropdown(
+                    choices=[
+                        model["name"]
+                        for model in models
+                    ],
+                    label="Select Model"
+                )
+
+                deployment_name_input = gr.Textbox(
+                    label="Deployment Name",
+                    placeholder="My Production AI"
+                )
+
+                with gr.Row():
+
+                    region_input = gr.Dropdown(
+                        choices=[
+                            "Mumbai",
+                            "Bengaluru",
+                            "Delhi",
+                            "Singapore"
+                        ],
+                        value="Bengaluru",
+                        label="Deployment Region"
+                    )
+
+                    environment_input = gr.Dropdown(
+                        choices=[
+                            "Development",
+                            "Testing",
+                            "Production"
+                        ],
+                        value="Production",
+                        label="Environment"
+                    )
+
+                deploy_button = gr.Button(
+                    "Deploy Model",
+                    variant="primary"
+                )
+
+                deploy_output = gr.Markdown()
+
+                deploy_button.click(
+                    deploy_model,
+                    inputs=[
+                        deploy_selector,
+                        deployment_name_input,
+                        region_input,
+                        environment_input
+                    ],
+                    outputs=deploy_output
+                )
+
+
+
+            with gr.Tab("Dashboard"):
+
+                gr.Markdown(
+                    "# Your AetherAI Dashboard"
+                )
+
+                dashboard_button = gr.Button(
+                    "Refresh Dashboard",
+                    variant="primary"
+                )
+
+                dashboard_stats = gr.Markdown()
+
+                with gr.Row():
+
+                    spending_chart = gr.Plot(
+                        label="Spending Overview"
+                    )
+
+                    activity_chart = gr.Plot(
+                        label="Marketplace Activity"
+                    )
+
+                dashboard_button.click(
+                    dashboard_data,
+                    outputs=[
+                        dashboard_stats,
+                        spending_chart,
+                        activity_chart
+                    ]
+                )
+
+
+            with gr.Tab("Creator Studio"):
+
+                gr.Markdown("""
+                # Creator Studio
+
+                Publish and monetize your AI model.
+                """)
+
+                with gr.Row():
+
+                    creator_model_name = gr.Textbox(
+                        label="Model Name"
+                    )
+
+                    creator_name = gr.Textbox(
+                        label="Creator / Developer"
+                    )
+
+                creator_category = gr.Dropdown(
+                    choices=[
+                        "Large Language Models",
+                        "Computer Vision",
+                        "Healthcare AI",
+                        "Speech and Audio",
+                        "Image Generation",
+                        "Finance AI"
+                    ],
+                    value="Large Language Models",
+                    label="Category"
+                )
+
+                creator_description = gr.Textbox(
+                    label="Model Description",
+                    lines=4
+                )
+
+                with gr.Row():
+
+                    creator_price = gr.Number(
+                        label="Monthly Price (₹)",
+                        value=999
+                    )
+
+                    creator_accuracy = gr.Number(
+                        label="Accuracy (%)",
+                        value=90
+                    )
+
+                with gr.Row():
+
+                    creator_latency = gr.Number(
+                        label="Latency (ms)",
+                        value=300
+                    )
+
+                    creator_benchmark = gr.Number(
+                        label="Benchmark Score",
+                        value=85
+                    )
+
+                publish_button = gr.Button(
+                    "Publish Model",
+                    variant="primary"
+                )
+
+                publish_result = gr.Markdown()
+
+                publish_button.click(
+                    publish_model,
+                    inputs=[
+                        creator_model_name,
+                        creator_name,
+                        creator_category,
+                        creator_description,
+                        creator_price,
+                        creator_accuracy,
+                        creator_latency,
+                        creator_benchmark
+                    ],
+                    outputs=publish_result
+                )
+
+
+  
+
+    login_button.click(
+        login_and_open,
+        inputs=[
+            login_email,
+            login_password
+        ],
+        outputs=[
+            login_screen,
+            main_app,
+            user_status,
+            login_message
+        ]
+    )
+
+    guest_button.click(
+        guest_and_open,
+        outputs=[
+            login_screen,
+            main_app,
+            user_status,
+            login_message
+        ]
+    )
+
+
+print("AetherAI UI loaded successfully.")
